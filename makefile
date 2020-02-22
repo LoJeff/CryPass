@@ -1,6 +1,8 @@
 IDIR=./include
 CC=g++
-CFLAGS=-I$(IDIR)
+OPENSSL=/src/include/openssl
+
+CFLAGS=-I$(IDIR) -I$(OPENSSL) -lcrypto
 
 ODIR=obj
 LDIR =../lib
@@ -9,12 +11,14 @@ LIBS=-lm
 
 _DEPS = \
 	common.h \
-	parser.h
+	parser.h \
+	cry.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ = \
 	main.o \
-	parser.o
+	parser.o \
+	cry.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 

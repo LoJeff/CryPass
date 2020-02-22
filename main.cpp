@@ -1,25 +1,37 @@
-// External Headers
-#include <openssl/rsa.h>
-
 // Local Headers
 #include "common.h"
 #include "parser.h"
+#include "cry.h"
 
 int main(int argc, char *argv[]) {
-    cout << "ARGS" << endl;
-    for (int i = 0; i < argc; ++i) {
-        cout << "   " << argv[i] << endl;
-    }
 
-    PARSER* parser = new PARSER(argc, argv);
+    string input;
+    PARSER parser;
+    CRY crypt;
+    
+    while (true) {
+        cout << ">> ";
+        getline(cin, input);
+        cout << endl;
+        parser.parse(input);
 
-    if (parser->is_successful()) {
-        cout << "PASS" << endl;
-        parser->print_flags();
-    } else {
-        cout << "FAIL" << endl;
+        string cmdStr = parser.get_cmd_str();
+        CMD cmd = parser.get_cmd(cmdStr);
+        switch (cmd) {
+            case CMD::GEN_RSA:
+            case CMD::ENC:
+            cout << "Running " << cmdStr << endl;
+                crypt.set_cmd(cmd);
+                crypt.run();
+                break;
+            case CMD::HELP:
+                parser.list_cmds();
+            case CMD::EXIT:
+            case CMD::Q:
+                cout << "Exiting..." << endl;
+                return 0;
+            default:
+                cout << "To exit type EXIT or Q" << endl;
+        }
     }
-    delete parser;
-    parser = NULL;
-    return 0;
 }
