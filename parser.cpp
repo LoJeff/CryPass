@@ -7,7 +7,7 @@ const array<string, NUM_M_FLAGS> PARSER::m_mainFlags({
 });
 
 const unordered_map<string, int> PARSER::m_mulArgs({
-    {"-enc", 1},
+    {"-o", 0},
     {"-i", -1}
 });
 
@@ -94,7 +94,7 @@ bool PARSER::parse(const string& s) {
     }
 }
 
-void PARSER::print_flags() {
+void PARSER::print_flags()  const {
     cout << "Parser Flags:" << endl; 
     for (auto it = m_flags.begin(); it != m_flags.end(); ++it) {
         cout << "   " << get<0>(*it) << " :";
@@ -105,17 +105,24 @@ void PARSER::print_flags() {
     }
 }
 
-string PARSER::get_cmd_str() {
+string PARSER::get_cmd_str() const {
     auto it = m_flags.find("cmd");
     return it == m_flags.end() ? "" : get<1>(*it)[0];
 }
 
-CMD PARSER::get_cmd(string s) {
+CMD PARSER::get_cmd(string s) const {
     if (s.empty()) {
         s = get_cmd_str();
     }
     CMD_ENUM_MAP::const_iterator it = m_cmdToEnum.find(s);
     return it == m_cmdToEnum.end() ? CMD::INVALID : get<1>(*it);
+}
+
+void PARSER::get_flag(STR_ARG_MAP &flags, const string &s) const {
+    auto it = m_flags.find(s);
+    if (it != m_flags.end()) {
+        flags.insert(*it);
+    }
 }
 
 void PARSER::sep_string(const string &s, vector<string> &vec) {
@@ -134,7 +141,7 @@ void PARSER::sep_string(const string &s, vector<string> &vec) {
     }
 }
 
-void PARSER::list_cmds() {
+void PARSER::list_cmds() const {
     cout << "COMMAND LIST:" << endl;
     for (auto it = m_cmdToEnum.begin(); it != m_cmdToEnum.end(); ++it) {
         if (get<1>(*it) > CMD::INVALID) {

@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
             case CMD::GEN_RSA:
             case CMD::ENC:
             cout << "Running " << cmdStr << endl;
-                crypt.set_cmd(cmd);
+                crypt.init(parser);
                 crypt.run();
                 break;
             case CMD::HELP:

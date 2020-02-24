@@ -2,8 +2,8 @@
 #define PARSER_H
 
 // External Headers
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
 
 // Local Headers
 #include "common.h"
@@ -24,11 +24,12 @@ public:
     PARSER();
     bool parse(const string& s);
 
-    void print_flags();
-    void list_cmds();
+    void print_flags() const;
+    void list_cmds() const;
 
-    string get_cmd_str();
-    CMD get_cmd(string s = "");
+    string get_cmd_str() const;
+    CMD get_cmd(string s = "") const;
+    void get_flag(STR_ARG_MAP &flags, const string &s) const;
 private:
     void sep_string(const string &s, vector<string> &vec);
 };
