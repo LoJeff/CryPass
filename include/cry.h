@@ -14,17 +14,22 @@
 class CRY {
 public:
     CRY();
+    ~CRY();
 
     bool run();
     
     void init(const PARSER &parser);
 private:
     void gen_rsa();
-    int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
-            unsigned char *iv, unsigned char *ciphertext);
+    void load_rsa();
 
     void errorHandler();
 
+    void createRSA(unsigned char * key, int pub);
+    void createRSAWithFilename(char * filename, int pub);
+
+    RSA *m_pri_rsa;
+    RSA *m_pub_rsa;
     CMD m_cmd;
     STR_ARG_MAP m_configs;
 };

@@ -2,7 +2,20 @@
 #include "cry.h"
 
 CRY::CRY() {
+    m_pri_rsa = RSA_new();
+    m_pub_rsa = RSA_new();
+}
 
+CRY::~CRY() {
+    if (m_pri_rsa) {
+        RSA_free(m_pri_rsa);
+        m_pri_rsa = NULL;
+    }
+
+    if (m_pub_rsa) {
+        RSA_free(m_pub_rsa);
+        m_pub_rsa = NULL;
+    }
 }
 
 bool CRY::run() {
@@ -43,7 +56,7 @@ void CRY::gen_rsa() {
     BIGNUM *bne = NULL;
     BIO *bp_public = NULL, *bp_private = NULL;
     size_t pri_len, pub_len;
-    char *pri_key = NULL, *pub_key = NULL;
+    unsigned char *pri_key = NULL, *pub_key = NULL;
 
     bne = BN_new();
     ret = BN_set_word(bne, e);
@@ -74,8 +87,8 @@ void CRY::gen_rsa() {
     pri_len = BIO_pending(bp_private);
     pub_len = BIO_pending(bp_public);
 
-    pri_key = new char[pri_len+1];
-    pub_key = new char[pub_len+1];
+    pri_key = new unsigned char[pri_len+1];
+    pub_key = new unsigned char[pub_len+1];
 
     BIO_read(bp_private, pri_key, pri_len);
     BIO_read(bp_public, pub_key, pub_len);
@@ -91,58 +104,48 @@ free_all:
 	BIO_free_all(bp_private);
 	RSA_free(r);
 	BN_free(bne);
+
     delete pri_key;
     delete pub_key;
 
 	return;
 }
 
-void CRY::errorHandler()
-{
+void CRY::errorHandler() {
     ERR_print_errors_fp(stderr);
     abort();
 }
 
-int CRY::encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
-            unsigned char *iv, unsigned char *ciphertext) {
-    EVP_CIPHER_CTX *ctx;
+void CRY::createRSA(unsigned char * key, int pub) {
+    if (pub ? m_pub_rsa != NULL : m_pri_rsa != NULL) {
+        cout << "Overwriting " << (pub ? "Public" : "Private") << " Key" << endl;
+    }
 
-    int len;
+    BIO *keybio;
+    keybio = BIO_new_mem_buf(key, -1);
+    if (keybio == NULL) {
+        printf( "Failed to create key BIO");
+        return;
+    }
 
-    int ciphertext_len;
+    if (pub) {
+        m_pub_rsa = PEM_read_bio_RSA_PUBKEY(keybio, &m_pub_rsa, NULL, NULL);
+    } else {
+        m_pri_rsa = PEM_read_bio_RSAPrivateKey(keybio, &m_pri_rsa, NULL, NULL);
+    }
+}
 
-    /* Create and initialise the context */
-    if(!(ctx = EVP_CIPHER_CTX_new()))
-        errorHandler();
+void CRY::createRSAWithFilename(char * filename, int pub) {
+    FILE * fp = fopen(filename,"rb");
 
-    /*
-     * Initialise the encryption operation. IMPORTANT - ensure you use a key
-     * and IV size appropriate for your cipher
-     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
-     * IV size for *most* modes is the same as the block size. For AES this
-     * is 128 bits
-     */
-    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
-        errorHandler();
+    if (fp == NULL) {
+        cout << "Unable to open file " << filename << endl;
+        return;
+    }
 
-    /*
-     * Provide the message to be encrypted, and obtain the encrypted output.
-     * EVP_EncryptUpdate can be called multiple times if necessary
-     */
-    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-        errorHandler();
-    ciphertext_len = len;
-
-    /*
-     * Finalise the encryption. Further ciphertext bytes may be written at
-     * this stage.
-     */
-    if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
-        errorHandler();
-    ciphertext_len += len;
-
-    /* Clean up */
-    EVP_CIPHER_CTX_free(ctx);
-
-    return ciphertext_len;
+    if(pub) {
+        m_pub_rsa = PEM_read_RSA_PUBKEY(fp, &m_pub_rsa,NULL, NULL);
+    } else {
+        m_pri_rsa = PEM_read_RSAPrivateKey(fp, &m_pri_rsa,NULL, NULL);
+    }
 }
