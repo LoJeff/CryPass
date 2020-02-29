@@ -19,19 +19,20 @@ int main(int argc, char *argv[]) {
         CMD cmd = parser.get_cmd(cmdStr);
         switch (cmd) {
             case CMD::GEN_RSA:
-            case CMD::ENC:
+            case CMD::LOAD_RSA:
+            case CMD::ENC_RSA:
             cout << "Running " << cmdStr << endl;
                 crypt.init(parser);
                 crypt.run();
                 break;
             case CMD::HELP:
                 parser.list_cmds();
-            case CMD::EXIT:
+                break;
             case CMD::Q:
                 cout << "Exiting..." << endl;
                 return 0;
             default:
-                cout << "To exit type EXIT or Q" << endl;
+                cout << "To exit type Q" << endl;
         }
     }
 }

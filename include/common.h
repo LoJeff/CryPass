@@ -9,8 +9,8 @@ enum CMD {
     INVALID,
     HELP,
     GEN_RSA,
-    ENC,
-    EXIT,
+    LOAD_RSA,
+    ENC_RSA,
     Q
 };
 

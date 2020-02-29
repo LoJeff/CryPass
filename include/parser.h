@@ -4,20 +4,21 @@
 // External Headers
 #include <vector>
 #include <unordered_map>
+#include <tuple>
 
 // Local Headers
 #include "common.h"
 
-#define NUM_M_FLAGS 2
 typedef vector<string> ARGS;
 typedef unordered_map<string, ARGS> STR_ARG_MAP;
-typedef unordered_map<string, CMD> CMD_ENUM_MAP;
+typedef unordered_map<string, int> FLAG_INFO;
+typedef vector<string> MAIN_ARGS;
+typedef tuple<CMD, FLAG_INFO, MAIN_ARGS> CMD_INFO;
+typedef unordered_map<string, CMD_INFO> CMD_INFO_MAP;
 
 class PARSER {
 private:
-    static const array<string, NUM_M_FLAGS> m_mainFlags;
-    static const unordered_map<string, int> m_mulArgs; 
-    static const CMD_ENUM_MAP m_cmdToEnum;
+    static const CMD_INFO_MAP s_cmdToInfo;
 
     STR_ARG_MAP m_flags;
 public:

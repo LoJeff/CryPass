@@ -1,23 +1,50 @@
 // Local Headers
 #include "parser.h"
 
-const array<string, NUM_M_FLAGS> PARSER::m_mainFlags({
-    "cmd",
-    "output"
-});
-
-const unordered_map<string, int> PARSER::m_mulArgs({
-    {"-o", 0},
-    {"-i", -1}
-});
-
-const CMD_ENUM_MAP PARSER::m_cmdToEnum({
-    {"INVALID", INVALID},
-    {"HELP", HELP},
-    {"GEN_RSA", GEN_RSA},
-    {"ENC", ENC},
-    {"EXIT", EXIT},
-    {"Q", Q}
+const CMD_INFO_MAP PARSER::s_cmdToInfo({
+    {"INVALID", make_tuple(
+        INVALID,
+        FLAG_INFO({
+        }),
+        MAIN_ARGS({
+        })
+    )},
+    {"HELP", make_tuple(
+        HELP,
+        FLAG_INFO({
+        }),
+        MAIN_ARGS({
+        })
+    )},
+    {"GEN_RSA", make_tuple(
+        GEN_RSA,
+        FLAG_INFO({
+            {"-o", 0},
+            {"-v", 0}
+        }),
+        MAIN_ARGS({
+        })
+    )},
+    {"LOAD_RSA", make_tuple(
+        LOAD_RSA,
+        FLAG_INFO({
+        }),
+        MAIN_ARGS({
+            "input"
+        })
+    )},
+    {"ENC_RSA", make_tuple(
+        ENC_RSA,
+        FLAG_INFO({
+        }),
+        MAIN_ARGS({
+        })
+    )},
+    {"Q", make_tuple(
+        Q,
+        FLAG_INFO({}),
+        MAIN_ARGS({})
+    )}
 });
 
 PARSER::PARSER() {
@@ -33,10 +60,32 @@ bool PARSER::parse(const string& s) {
     vector<string> argv;
     sep_string(s, argv);
 
-    for (int i = 0; i < argv.size(); ++i) {
+    // Grabbing command
+    if (argv.empty()) {
+        cout << "Please provide a command" << endl;
+        return false;
+    }
+    
+    // Make case-insensitive
+    for (int j = 0; j < argv[0].size(); ++j) {
+        argv[0][j] = toupper(argv[0][j]);
+    }
+
+    if (!s_cmdToInfo.count(argv[0])) {
+        cout << "Provided command " << argv[0] << " does not exist" << endl;
+        return false;
+    }
+    m_flags.insert(make_pair("cmd", ARGS({argv[0]})));
+    
+    auto cmd_info_it = s_cmdToInfo.find(argv[0]);
+    CMD cmd = get<0>(cmd_info_it->second);
+    FLAG_INFO flag_info = get<1>(cmd_info_it->second);
+    MAIN_ARGS arg_map = get<2>(cmd_info_it->second);
+
+    for (int i = 1; i < argv.size(); ++i) {
         if (argv[i][0] == '-') { // Flag
-            auto curArg = m_mulArgs.find(argv[i]);
-            if (curArg == m_mulArgs.end()) {
+            auto curArg = flag_info.find(argv[i]);
+            if (curArg == flag_info.end()) {
                 cout << "Flag " << argv[i] << " is not a valid flag" << endl;
                 return false;
             }
@@ -64,19 +113,8 @@ bool PARSER::parse(const string& s) {
                 }
             }
         } else { // Arg with no flag
-            if (mId < NUM_M_FLAGS) { // if all main flags are not taken
-                if (mId == 0) { // First main flag is always CMD
-                    // Make case-insensitive
-                    for (int j = 0; j < argv[i].size(); ++j) {
-                        argv[i][j] = toupper(argv[i][j]);
-                    }
-
-                    if (!m_cmdToEnum.count(argv[i])) {
-                        cout << "Command " << argv[i] << " does not exist" << endl;
-                        return false;
-                    }
-                }
-                m_flags.insert(make_pair(m_mainFlags[mId], ARGS({argv[i]})));
+            if (mId < arg_map.size()) { // if all main flags are not taken
+                m_flags.insert(make_pair(arg_map[mId], ARGS({argv[i]})));
                 ++mId;
             } else {
                 cout << "All main flags filled" << endl;
@@ -86,12 +124,7 @@ bool PARSER::parse(const string& s) {
         }
     }
 
-    if (m_flags.count("cmd")) {
-        return true;
-    } else {
-        cout << "Please provide a command" << endl;
-        return false;
-    }
+    return true;
 }
 
 void PARSER::print_flags()  const {
@@ -114,8 +147,8 @@ CMD PARSER::get_cmd(string s) const {
     if (s.empty()) {
         s = get_cmd_str();
     }
-    CMD_ENUM_MAP::const_iterator it = m_cmdToEnum.find(s);
-    return it == m_cmdToEnum.end() ? CMD::INVALID : get<1>(*it);
+    CMD_INFO_MAP::const_iterator it = s_cmdToInfo.find(s);
+    return it == s_cmdToInfo.end() ? CMD::INVALID : get<0>(get<1>(*it));
 }
 
 void PARSER::get_flag(STR_ARG_MAP &flags, const string &s) const {
@@ -143,8 +176,8 @@ void PARSER::sep_string(const string &s, vector<string> &vec) {
 
 void PARSER::list_cmds() const {
     cout << "COMMAND LIST:" << endl;
-    for (auto it = m_cmdToEnum.begin(); it != m_cmdToEnum.end(); ++it) {
-        if (get<1>(*it) > CMD::INVALID) {
+    for (auto it = s_cmdToInfo.begin(); it != s_cmdToInfo.end(); ++it) {
+        if (get<0>(get<1>(*it)) > CMD::INVALID) {
             cout << "   " << get<0>(*it) << endl;
         }
     }
