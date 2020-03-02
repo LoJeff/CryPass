@@ -31,11 +31,9 @@ public:
 private:
     void gen_rsa();
     void load_rsa();
+    string gen_otp();
 
     void dump_key(BIO_FILE_ptr &bp);
-    
-    EVP_CIPHER_CTX *rsaEncryptCtx;
-    EVP_CIPHER_CTX *rsaDecryptCtx;
 
     RSA_ptr m_rsa;
     CMD m_cmd;

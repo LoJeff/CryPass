@@ -98,3 +98,15 @@ void CRY::load_rsa() {
         cout << "Please provide a key" << endl;
     }
 }
+
+void set_seed(int salt) {
+    srand(time(NULL) + salt);
+}
+
+string gen_otp(int len, char start, char end) {
+    string s;
+    for (int i = 0; i < len; ++i) {
+        s.push_back((char) start + (rand() % (end - start + 1)));
+    }
+    return s;
+}

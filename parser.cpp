@@ -28,6 +28,7 @@ const CMD_INFO_MAP PARSER::s_cmdToInfo({
     {"LOAD_RSA", make_tuple(
         LOAD_RSA,
         FLAG_INFO({
+            {"-p", 0}
         }),
         MAIN_ARGS({
             "input"
